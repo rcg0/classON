@@ -100,21 +100,25 @@ var serve_http = function(request, response){
 			break;
 
     }
-    if (fs.existsSync(filePath))
+    // bloking call
+    //if (fs.existsSync(filePath))
+    fs.access(filePath, (error, content) =>
     {
-        fs.readFile(filePath, function(error, content) {
-            if (error) {
-                response.writeHead(500);
-                response.end();
-            }  else {
-                response.writeHead(200, { 'Content-Type': contentType });
-                response.end(content, 'utf-8');
-            }
-        });
-    } else {
-        response.writeHead(404);
-        response.end();
-    }
+        if (error) {
+            response.writeHead(404);
+            response.end();
+        } else {
+            fs.readFile(filePath, function (error, content) {
+                if (error) {
+                    response.writeHead(500);
+                    response.end();
+                } else {
+                    response.writeHead(200, { 'Content-Type': contentType });
+                    response.end(content, 'utf-8');
+                }
+            })
+        }
+    });
 };
 
 var createAssignment = function(request, response){

@@ -44,13 +44,17 @@ var assignmentManager = new AssignmentManager('localhost', 27017);
 var methodOverride = require('method-override')
 var bodyParser = require('body-parser')
 app.use(methodOverride());
-app.use(bodyParser());
+//app.use(bodyParser());                                // Deprecated too, solution below
+app.use(bodyParser.urlencoded({ extended: true }));     // https://stackoverflow.com/questions/29960764/what-does-extended-mean-in-express-4-0
+app.use(bodyParser.json());
 /* app.router has been removed. Middleware and routes are now executed in the order they're added.
  * app.use(app.router);
  */
 //app.set('views', '/student/assignments');
 app.set('view engine', 'ejs');
-app.set('view options', { layout: false });
+
+console.log('hello world');
+
 
 /*
  * HTTP server init
@@ -58,8 +62,6 @@ app.set('view options', { layout: false });
 var serve_http = function(request, response){
 //console.log('requester IP:'+request.connection.remoteAddress);
 //console.log('requesting file:'+request.url);
-
-
 	var filePath = '.' + request.url;
 	if(filePath.indexOf('?')!=-1) filePath = filePath.substr(0,filePath.indexOf('?'));
 	if (filePath.substr(-1)==('/')) filePath += 'index.html';
@@ -148,6 +150,10 @@ var visualizeAssignment = function(request, response){
 		response.render('index.ejs', assignments[0]);
 	});
 }
+
+app.get('/', function (req, res) {
+    res.send('Sistem on');
+});
 
 app.get('/student/*', function (request, response) {
 	serve_http(request, response);
@@ -575,7 +581,7 @@ io.sockets.on('connection', function (socket) {
 });
 
 //Launch app
-// $$$$ No parece haber diferencia entre app.listen y port.listen
+console.log('Server running on port ' + port + '...');
 app.listen(port);
 //server.listen(port);      
-console.log('Server running on port '+port+'...');
+// No llega hasta aquí

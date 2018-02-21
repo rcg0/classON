@@ -524,7 +524,7 @@ rangy.createModule("DomUtil", function(api, module) {
 
     function comparePoints(nodeA, offsetA, nodeB, offsetB) {
         // See http://www.w3.org/TR/DOM-Level-2-Traversal-Range/ranges.html#Level-2-Range-Comparing
-        var nodeC, root, childA, childB, n;
+        var nodeC, global, childA, childB, n;
         if (nodeA == nodeB) {
 
             // Case 1: nodes are the same
@@ -540,16 +540,16 @@ rangy.createModule("DomUtil", function(api, module) {
         } else {
 
             // Case 4: containers are siblings or descendants of siblings
-            root = getCommonAncestor(nodeA, nodeB);
-            childA = (nodeA === root) ? root : getClosestAncestorIn(nodeA, root, true);
-            childB = (nodeB === root) ? root : getClosestAncestorIn(nodeB, root, true);
+            global = getCommonAncestor(nodeA, nodeB);
+            childA = (nodeA === global) ? global : getClosestAncestorIn(nodeA, global, true);
+            childB = (nodeB === global) ? global : getClosestAncestorIn(nodeB, global, true);
 
             if (childA === childB) {
                 // This shouldn't be possible
 
                 throw new Error("comparePoints got to case 4 and childA and childB are the same!");
             } else {
-                n = root.firstChild;
+                n = global.firstChild;
                 while (n) {
                     if (n === childA) {
                         return -1;
@@ -588,9 +588,9 @@ rangy.createModule("DomUtil", function(api, module) {
     /**
      * @constructor
      */
-    function NodeIterator(root) {
-        this.root = root;
-        this._next = root;
+    function NodeIterator(global) {
+        this.global = global;
+        this._next = global;
     }
 
     NodeIterator.prototype = {
@@ -609,7 +609,7 @@ rangy.createModule("DomUtil", function(api, module) {
                     this._next = child;
                 } else {
                     next = null;
-                    while ((n !== this.root) && !(next = n.nextSibling)) {
+                    while ((n !== this.global) && !(next = n.nextSibling)) {
                         n = n.parentNode;
                     }
                     this._next = next;
@@ -619,12 +619,12 @@ rangy.createModule("DomUtil", function(api, module) {
         },
 
         detach: function() {
-            this._current = this._next = this.root = null;
+            this._current = this._next = this.global = null;
         }
     };
 
-    function createIterator(root) {
-        return new NodeIterator(root);
+    function createIterator(global) {
+        return new NodeIterator(global);
     }
 
     /**
@@ -876,16 +876,16 @@ rangy.createModule("DomUtil", function(api, module) {
             this.so = range.startOffset;
             this.ec = range.endContainer;
             this.eo = range.endOffset;
-            var root = range.commonAncestorContainer;
+            var global = range.commonAncestorContainer;
 
             if (this.sc === this.ec && dom.isCharacterDataNode(this.sc)) {
                 this.isSingleCharacterDataNode = true;
                 this._first = this._last = this._next = this.sc;
             } else {
-                this._first = this._next = (this.sc === root && !dom.isCharacterDataNode(this.sc)) ?
-                    this.sc.childNodes[this.so] : dom.getClosestAncestorIn(this.sc, root, true);
-                this._last = (this.ec === root && !dom.isCharacterDataNode(this.ec)) ?
-                    this.ec.childNodes[this.eo - 1] : dom.getClosestAncestorIn(this.ec, root, true);
+                this._first = this._next = (this.sc === global && !dom.isCharacterDataNode(this.sc)) ?
+                    this.sc.childNodes[this.so] : dom.getClosestAncestorIn(this.sc, global, true);
+                this._last = (this.ec === global && !dom.isCharacterDataNode(this.ec)) ?
+                    this.ec.childNodes[this.eo - 1] : dom.getClosestAncestorIn(this.ec, global, true);
             }
 
         }
@@ -1039,7 +1039,7 @@ rangy.createModule("DomUtil", function(api, module) {
     };
 
     var beforeAfterNodeTypes = [1, 3, 4, 5, 7, 8, 10];
-    var rootContainerNodeTypes = [2, 9, 11];
+    var globalContainerNodeTypes = [2, 9, 11];
     var readonlyNodeTypes = [5, 6, 10, 12];
     var insertableNodeTypes = [1, 3, 4, 5, 7, 8, 10, 11];
     var surroundNodeTypes = [1, 3, 4, 5, 7, 8];
@@ -1106,7 +1106,7 @@ rangy.createModule("DomUtil", function(api, module) {
     }
 
     function isOrphan(node) {
-        return !dom.arrayContains(rootContainerNodeTypes, node.nodeType) && !getDocumentOrFragmentContainer(node, true);
+        return !dom.arrayContains(globalContainerNodeTypes, node.nodeType) && !getDocumentOrFragmentContainer(node, true);
     }
 
     function isValidOffset(node, offset) {
@@ -1561,14 +1561,14 @@ rangy.createModule("DomUtil", function(api, module) {
         return function() {
             assertRangeValid(this);
 
-            var sc = this.startContainer, so = this.startOffset, root = this.commonAncestorContainer;
+            var sc = this.startContainer, so = this.startOffset, global = this.commonAncestorContainer;
 
             var iterator = new RangeIterator(this, true);
 
             // Work out where to position the range after content removal
             var node, boundary;
-            if (sc !== root) {
-                node = dom.getClosestAncestorIn(sc, root, true);
+            if (sc !== global) {
+                node = dom.getClosestAncestorIn(sc, global, true);
                 boundary = getBoundaryAfterNode(node);
                 sc = boundary.node;
                 so = boundary.offset;
@@ -1595,7 +1595,7 @@ rangy.createModule("DomUtil", function(api, module) {
             return function(node) {
                 assertNotDetached(this);
                 assertValidNodeType(node, beforeAfterNodeTypes);
-                assertValidNodeType(getRootContainer(node), rootContainerNodeTypes);
+                assertValidNodeType(getRootContainer(node), globalContainerNodeTypes);
 
                 var boundary = (isBefore ? getBoundaryBeforeNode : getBoundaryAfterNode)(node);
                 (isStart ? setRangeStart : setRangeEnd)(this, boundary.node, boundary.offset);
@@ -1605,7 +1605,7 @@ rangy.createModule("DomUtil", function(api, module) {
         function setRangeStart(range, node, offset) {
             var ec = range.endContainer, eo = range.endOffset;
             if (node !== range.startContainer || offset !== range.startOffset) {
-                // Check the root containers of the range and the new boundary, and also check whether the new boundary
+                // Check the global containers of the range and the new boundary, and also check whether the new boundary
                 // is after the current end. In either case, collapse the range to the new position
                 if (getRootContainer(node) != getRootContainer(ec) || dom.comparePoints(node, offset, ec, eo) == 1) {
                     ec = node;
@@ -1618,7 +1618,7 @@ rangy.createModule("DomUtil", function(api, module) {
         function setRangeEnd(range, node, offset) {
             var sc = range.startContainer, so = range.startOffset;
             if (node !== range.endContainer || offset !== range.endOffset) {
-                // Check the root containers of the range and the new boundary, and also check whether the new boundary
+                // Check the global containers of the range and the new boundary, and also check whether the new boundary
                 // is after the current end. In either case, collapse the range to the new position
                 if (getRootContainer(node) != getRootContainer(sc) || dom.comparePoints(node, offset, sc, so) == -1) {
                     sc = node;

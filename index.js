@@ -53,8 +53,6 @@ app.use(bodyParser.json());
 //app.set('views', '/student/assignments');
 app.set('view engine', 'ejs');
 
-console.log('hello world');
-
 
 /*
  * HTTP server init
@@ -98,11 +96,11 @@ var serve_http = function(request, response){
 		case '.ogg':
 			contentType = 'application/ogg';
 			break;
-
     }
-    // bloking call
-    //if (fs.existsSync(filePath))
-    fs.access(filePath, (error, content) =>
+
+    console.log('serving: ' + contentType);
+    //if (fs.existsSync(filePath))                  // bloking call
+    fs.access(filePath, (error, content) =>         // Not bloking call
     {
         if (error) {
             response.writeHead(404);
@@ -155,6 +153,10 @@ var visualizeAssignment = function(request, response){
 	});
 }
 
+/* 
+ * app.get
+ * - When 'something/*' means it will get all beneath 'something'.
+ */
 app.get('/', function (req, res) {
     res.send('Sistem on');
 });

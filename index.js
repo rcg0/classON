@@ -63,8 +63,10 @@ var serve_http = function(request, response){
 //console.log('requester IP:'+request.connection.remoteAddress);
 //console.log('requesting file:'+request.url);
 	var filePath = '.' + request.url;
-	if(filePath.indexOf('?')!=-1) filePath = filePath.substr(0,filePath.indexOf('?'));
-	if (filePath.substr(-1)==('/')) filePath += 'index.html';
+    if (filePath.indexOf('?') != -1)
+        filePath = filePath.substr(0, filePath.indexOf('?'));
+    if (filePath.substr(-1) == ('/'))
+        filePath += 'index.html';
 
     var extname = path.extname(filePath);
     var contentType = 'text/html';
@@ -98,23 +100,21 @@ var serve_http = function(request, response){
 			break;
 
     }
-
-    fs.exists(filePath, function(exists) {
-    	if (exists) {
-            fs.readFile(filePath, function(error, content) {
-                if (error) {
-                    response.writeHead(500);
-                    response.end();
-                }  else {
-                    response.writeHead(200, { 'Content-Type': contentType });
-                    response.end(content, 'utf-8');
-                }
-            });
-        } else {
-            response.writeHead(404);
-            response.end();
-        }
-    });
+    if (fs.existsSync(filePath))
+    {
+        fs.readFile(filePath, function(error, content) {
+            if (error) {
+                response.writeHead(500);
+                response.end();
+            }  else {
+                response.writeHead(200, { 'Content-Type': contentType });
+                response.end(content, 'utf-8');
+            }
+        });
+    } else {
+        response.writeHead(404);
+        response.end();
+    }
 };
 
 var createAssignment = function(request, response){

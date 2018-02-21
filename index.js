@@ -11,11 +11,13 @@ var EventManager = require('./eventmanager').EventManager;
 var AssignmentManager = require('./assignmentmanager').AssignmentManager;
 
 //Express init
-var app = express.createServer();
+//var app = express.createServer();                     // Deprecated
+var app = express();
+var server = require('http').createServer(app);  
 //Websockets init thorough express
-var io = require('socket.io').listen(app);
-io.set('log level', 1);
-
+var io = require('socket.io')(server);
+//io.set('log level', 1);                               // Deprecated
+    
 /*
 Needed for heroku hosting
 io.configure(function () {
@@ -28,15 +30,27 @@ io.configure(function () {
 var eventManager = new EventManager('localhost', 27017);
 var assignmentManager = new AssignmentManager('localhost', 27017);
 
+/* Deprecated in express 4.x */
 //Use express config
-app.configure(function(){
-    app.use(express.methodOverride());
-    app.use(express.bodyParser());
-    app.use(app.router);
-    //app.set('views', '/student/assignments');
-    app.set('view engine', 'ejs');
-	app.set('view options', {layout: false});
-});
+//app.configure(function(){
+//    app.use(express.methodOverride());
+//    app.use(express.bodyParser());
+//    app.use(app.router);
+//    //app.set('views', '/student/assignments');
+//    app.set('view engine', 'ejs');
+//	app.set('view options', {layout: false});
+//});
+
+var methodOverride = require('method-override')
+var bodyParser = require('body-parser')
+app.use(methodOverride);
+app.use(bodyParser);
+/* app.router has been removed. Middleware and routes are now executed in the order they're added.
+ * app.use(app.router);
+ */
+//app.set('views', '/student/assignments');
+app.set('view engine', 'ejs');
+app.set('view options', { layout: false });
 
 /*
  * HTTP server init

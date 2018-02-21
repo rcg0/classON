@@ -11,3 +11,7 @@ classon-UAB.sublime-workspace
 teacher/class_templates/
 
 users
+obj/
+.vs/
+bin/
+ClassOn.njsproj

@@ -43,8 +43,8 @@ var assignmentManager = new AssignmentManager('localhost', 27017);
 
 var methodOverride = require('method-override')
 var bodyParser = require('body-parser')
-app.use(methodOverride);
-app.use(bodyParser);
+app.use(methodOverride());
+app.use(bodyParser());
 /* app.router has been removed. Middleware and routes are now executed in the order they're added.
  * app.use(app.router);
  */
@@ -575,5 +575,7 @@ io.sockets.on('connection', function (socket) {
 });
 
 //Launch app
+// $$$$ No parece haber diferencia entre app.listen y port.listen
 app.listen(port);
+//server.listen(port);      
 console.log('Server running on port '+port+'...');
